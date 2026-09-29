@@ -3,34 +3,47 @@ import { UploadCloud, FileText, Settings, ScanLine } from "lucide-react";
 
 export function DocumentScanner() {
   return (
-    <div className="w-full h-full min-h-[600px] border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center bg-slate-50 p-8 text-center relative overflow-hidden">
+    <div className="w-full h-full min-h-[600px] bg-slate-50 border border-slate-200 rounded-xl overflow-hidden flex flex-col md:flex-row">
       
       {/* 
-        INSTRUCCIONES PARA EL PASANTE:
-        ==================================================
-        Este es el esqueleto del Módulo de Digitalización.
-        Tu tarea es diseñar esta interfaz. Necesitamos que contenga:
-        
-        1. Un área principal grande (como un visor) que simule donde se vería la hoja recién escaneada.
-        2. Un panel lateral (Sidebar) con opciones de configuración del escáner:
-           - Selector de Color (Blanco y Negro / Color)
-           - Selector de Calidad (DPI)
-           - Botón grande principal de "ESCANEAR AHORA"
-        3. Una lista pequeña o "carrusel" abajo que muestre miniaturas de las hojas que ya se escanearon en este lote.
-        4. Un botón de "Guardar/Subir al Portal" al finalizar.
-        
-        Usa clases de Tailwind CSS para maquetar todo. 
-        Puedes borrar todo el contenido de este div y empezar desde cero.
+        ========================================================
+        SECCIÓN IZQUIERDA: Área de Visualización (Viewer)
+        ========================================================
+        Propósito: Aquí es donde el usuario verá la vista previa 
+        de la hoja física que acaba de escanear. 
+        Nota HTML: Piensa en cómo estructurar un contenedor que 
+        ocupe la mayor parte de la pantalla (flex-grow).
       */}
+      <div className="flex-1 flex flex-col items-center justify-center border-r border-slate-200 p-8 relative">
+        <ScanLine className="w-16 h-16 text-slate-300 mb-4" />
+        <p className="text-slate-400">Área de vista previa del documento</p>
+      </div>
 
-      <ScanLine className="w-16 h-16 text-slate-400 mb-4 animate-pulse" />
-      <h2 className="text-xl font-semibold text-slate-700 mb-2">
-        Módulo de Digitalización (En construcción)
-      </h2>
-      <p className="text-slate-500 max-w-md">
-        Borra este mensaje y comienza a maquetar la interfaz del escáner aquí usando Tailwind CSS. Sigue las instrucciones en el código fuente.
-      </p>
-
+      {/* 
+        ========================================================
+        SECCIÓN DERECHA: Panel de Control y Opciones (Sidebar)
+        ========================================================
+        Propósito: Este panel lateral contendrá los controles 
+        del hardware (el escáner) y el resumen de las hojas.
+        Debería incluir cosas como:
+        - Ajustes del escáner (resolución, color)
+        - Botón de acción principal ("Escanear")
+        - Una pequeña lista/galería de miniaturas (thumbnails)
+          de las hojas que ya se escanearon en esta sesión.
+          
+        Nota HTML: Utiliza la semántica adecuada (nav, aside, section) 
+        y usa flexbox/grid de Tailwind para ordenar los elementos.
+      */}
+      <div className="w-full md:w-80 bg-white p-6 flex flex-col gap-6">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-800">Controles</h3>
+          <p className="text-sm text-slate-500">Configuración del dispositivo</p>
+        </div>
+        
+        {/* Aquí irían los controles (formularios, selects, botones) */}
+        
+      </div>
+      
     </div>
   );
 }
