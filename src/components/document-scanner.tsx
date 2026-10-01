@@ -7,12 +7,12 @@ export function DocumentScanner() {
       
       {/* 
         ========================================================
-        SECCIÓN IZQUIERDA: Área de Visualización (Viewer)
+        ZONA PRINCIPAL: Área de Vista Previa
         ========================================================
-        Propósito: Aquí es donde el usuario verá la vista previa 
-        de la hoja física que acaba de escanear. 
-        Nota HTML: Piensa en cómo estructurar un contenedor que 
-        ocupe la mayor parte de la pantalla (flex-grow).
+        En este espacio se mostrará el documento físico una vez 
+        que sea digitalizado por el escáner. Sirve como lienzo
+        principal para validar que la hoja se haya capturado
+        correctamente antes de guardarla.
       */}
       <div className="flex-1 flex flex-col items-center justify-center border-r border-slate-200 p-8 relative">
         <ScanLine className="w-16 h-16 text-slate-300 mb-4" />
@@ -21,18 +21,14 @@ export function DocumentScanner() {
 
       {/* 
         ========================================================
-        SECCIÓN DERECHA: Panel de Control y Opciones (Sidebar)
+        PANEL LATERAL: Controles y Resumen
         ========================================================
-        Propósito: Este panel lateral contendrá los controles 
-        del hardware (el escáner) y el resumen de las hojas.
-        Debería incluir cosas como:
-        - Ajustes del escáner (resolución, color)
-        - Botón de acción principal ("Escanear")
-        - Una pequeña lista/galería de miniaturas (thumbnails)
-          de las hojas que ya se escanearon en esta sesión.
-          
-        Nota HTML: Utiliza la semántica adecuada (nav, aside, section) 
-        y usa flexbox/grid de Tailwind para ordenar los elementos.
+        Esta sección lateral (sidebar) agrupa las herramientas
+        del operador. Su propósito es alojar:
+        - La configuración de captura (resolución, formato).
+        - El disparador para iniciar el escaneo.
+        - Un registro visual (miniaturas) de las hojas que 
+          pertenecen al lote actual.
       */}
       <div className="w-full md:w-80 bg-white p-6 flex flex-col gap-6">
         <div>
@@ -40,7 +36,7 @@ export function DocumentScanner() {
           <p className="text-sm text-slate-500">Configuración del dispositivo</p>
         </div>
         
-        {/* Aquí irían los controles (formularios, selects, botones) */}
+        {/* Controles de hardware y cola de miniaturas */}
         
       </div>
       
