@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+	<meta name="theme-color" content="#f6f8f6">
+	<title>Escáner fácil</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+	<style>
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			background: #f6f8f6;
+			color: #18342d;
+			font-family: Arial, sans-serif;
+		}
+
+		button {
+			font: inherit;
+			cursor: pointer;
+		}
+
+		.app {
+			width: min(100%, 560px);
+			min-height: 100vh;
+			margin: 0 auto;
+			padding: 24px 20px calc(110px + env(safe-area-inset-bottom));
+		}
+
+		.encabezado {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.encabezado-derecha,
+		.opciones {
+			position: relative;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.mas-opciones {
+			width: 40px;
+			height: 40px;
+			border: 0;
+			border-radius: 7px;
+			background: #eaf0ec;
+			color: #18342d;
+			font-size: 23px;
+			line-height: 1;
+		}
+
+		.menu-opciones {
+			position: absolute;
+			top: calc(100% + 8px);
+			right: 0;
+			z-index: 3;
+			width: 180px;
+			padding: 6px;
+			border: 1px solid #dfe6e0;
+			border-radius: 8px;
+			background: white;
+			box-shadow: 0 8px 24px rgba(24, 52, 45, .15);
+		}
+
+		.menu-opciones button {
+			width: 100%;
+			padding: 12px 10px;
+			border: 0;
+			border-radius: 5px;
+			background: white;
+			color: #18342d;
+			text-align: left;
+		}
+
+		.menu-opciones button:hover,
+		.menu-opciones button:focus-visible {
+			background: #f1f5f2;
+		}
+
+		.marca {
+			font-size: 15px;
+			font-weight: 700;
+		}
+
+		.paginas-total {
+			color: #708079;
+			font-size: 13px;
+		}
+
+		h1 {
+			margin: 34px 0 8px;
+			font-size: 29px;
+			line-height: 1.15;
+		}
+
+		.introduccion {
+			margin: 0;
+			color: #708079;
+			font-size: 14px;
+			line-height: 1.5;
+		}
+
+		.acciones {
+			display: grid;
+			gap: 10px;
+			margin-top: 26px;
+		}
+
+		.carpetas {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto;
+			align-items: center;
+			gap: 8px;
+			margin-top: 25px;
+		}
+
+		.carpetas label {
+			grid-column: 1 / -1;
+			color: #708079;
+			font-size: 12px;
+		}
+
+		.carpetas select,
+		.carpetas button {
+			min-height: 44px;
+			padding: 0 11px;
+			border: 1px solid #d8e2dc;
+			border-radius: 7px;
+			background: white;
+			color: #24473d;
+			font: inherit;
+			font-size: 13px;
+		}
+
+		.carpetas select {
+			min-width: 0;
+		}
+
+		.carpetas button {
+			font-weight: 700;
+		}
+
+		.accion-camara,
+		.accion-importar {
+			display: flex;
+			min-height: 58px;
+			align-items: center;
+			justify-content: center;
+			gap: 10px;
+			border-radius: 8px;
+			font-weight: 700;
+		}
+
+		.accion-camara {
+			border: 0;
+			background: #087f68;
+			color: #fff;
+		}
+
+		.accion-importar {
+			border: 1px solid #d8e2dc;
+			background: #fff;
+			color: #24473d;
+		}
+
+		.icono {
+			font-size: 19px;
+			line-height: 1;
+		}
+
+		.seccion-paginas {
+			margin-top: 34px;
+		}
+
+		.titulo-paginas {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			margin-bottom: 10px;
+		}
+
+		h2 {
+			margin: 0;
+			font-size: 18px;
+		}
+
+		.lista-paginas {
+			border-top: 1px solid #dfe6e0;
+		}
+
+		.vacio {
+			padding: 18px 0;
+			color: #75847d;
+			font-size: 13px;
+			line-height: 1.5;
+		}
+
+		.pagina {
+			display: flex;
+			min-height: 92px;
+			align-items: center;
+			gap: 13px;
+			padding: 10px 0;
+			border-bottom: 1px solid #dfe6e0;
+		}
+
+		.pagina img {
+			width: 60px;
+			height: 70px;
+			flex: 0 0 60px;
+			border-radius: 4px;
+			background: #e8eee9;
+			object-fit: cover;
+		}
+
+		.pagina-info {
+			min-width: 0;
+			flex: 1;
+		}
+
+		.pagina-info strong,
+		.pagina-info span {
+			display: block;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.pagina-info strong {
+			font-size: 14px;
+		}
+
+		.pagina-info span {
+			margin-top: 5px;
+			color: #75847d;
+			font-size: 12px;
+		}
+
+		.quitar {
+			width: 40px;
+			height: 40px;
+			border: 0;
+			border-radius: 6px;
+			background: transparent;
+			color: #9a5049;
+			font-size: 22px;
+		}
+
+		.mensaje {
+			min-height: 20px;
+			margin-top: 14px;
+			color: #087f68;
+			font-size: 13px;
+			text-align: center;
+		}
+
+		.pie {
+			position: fixed;
+			right: 0;
+			bottom: 0;
+			left: 0;
+			padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+			border-top: 1px solid #e0e7e1;
+			background: rgba(255, 255, 255, .97);
+		}
+
+		.crear-pdf {
+			display: block;
+			width: min(100%, 520px);
+			min-height: 52px;
+			margin: 0 auto;
+			border: 0;
+			border-radius: 8px;
+			background: #183d33;
+			color: white;
+			font-weight: 700;
+		}
+
+		.crear-pdf:disabled {
+			background: #aebbb4;
+			cursor: not-allowed;
+		}
+
+		input[type="file"] {
+			display: none;
+		}
+
+		@media print {
+			body {
+				background: white;
+			}
+
+			.encabezado,
+			.acciones,
+			.carpetas,
+			.pie,
+			.mensaje,
+			.quitar,
+			.vacio {
+				display: none !important;
+			}
+
+			.app {
+				width: 100%;
+				padding: 0;
+			}
+
+			.pagina {
+				break-inside: avoid;
+			}
+		}
+
+		@media (min-width: 700px) {
+			.app {
+				min-height: 100vh;
+				padding-top: 32px;
+				background: #fff;
+				box-shadow: 0 0 40px rgba(24, 52, 45, .06);
+			}
+
+			.opciones {
+				display: none;
+			}
+
+			.pie {
+				right: max(0px, calc((100vw - 560px) / 2));
+				left: max(0px, calc((100vw - 560px) / 2));
+			}
+		}
+	</style>
+</head>
+<body>
+	<main class="app">
+		<header class="encabezado">
+			<div class="marca">SQCS · Escáner</div>
+			<div class="encabezado-derecha">
+				<div class="paginas-total" id="contador">0 páginas</div>
+				<div class="opciones">
+					<button class="mas-opciones" id="btnOpciones" type="button" aria-label="Más opciones" aria-haspopup="true" aria-expanded="false" aria-controls="menuOpciones">⋮</button>
+					<div class="menu-opciones" id="menuOpciones" hidden>
+						<button id="btnEditarPdf" type="button">Editar PDF</button>
+						<button id="btnImprimir" type="button">Imprimir</button>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<h1>Escanea tu documento</h1>
+		<p class="introduccion">Toma una foto o importa imágenes y PDF desde tu dispositivo o Drive.</p>
+
+		<div class="acciones">
+			<button class="accion-camara" id="btnCamara" type="button">
+				<span class="icono" aria-hidden="true">▣</span>
+				Tomar foto
+			</button>
+			<button class="accion-importar" id="btnImportar" type="button">
+				<span class="icono" aria-hidden="true">▧</span>
+				Importar archivos
+			</button>
+		</div>
+
+		<div class="carpetas">
+			<label for="carpetaActiva">Guardar documentos en</label>
+			<select id="carpetaActiva" aria-label="Carpeta activa"></select>
+			<button id="btnNuevaCarpeta" type="button">+ Carpeta</button>
+		</div>
+
+		<input id="entradaCamara" type="file" accept="image/*" capture="environment">
+		<input id="entradaImagenes" type="file" accept="image/*,.pdf,application/pdf" multiple>
+
+		<section class="seccion-paginas" aria-labelledby="tituloPaginas">
+			<div class="titulo-paginas">
+				<h2 id="tituloPaginas">Páginas</h2>
+			</div>
+			<div class="lista-paginas" id="listaPaginas" aria-live="polite">
+				<div class="vacio">Tus fotos aparecerán aquí. Puedes quitarlas antes de crear el PDF.</div>
+			</div>
+		</section>
+
+		<div class="mensaje" id="mensaje" role="status" aria-live="polite"></div>
+	</main>
+
+	<footer class="pie">
+		<button class="crear-pdf" id="btnPdf" type="button" disabled>Crear PDF</button>
+	</footer>
+
+	<script>
+		const entradaCamara = document.getElementById("entradaCamara");
+		const entradaImagenes = document.getElementById("entradaImagenes");
+		const listaPaginas = document.getElementById("listaPaginas");
+		const contador = document.getElementById("contador");
+		const mensaje = document.getElementById("mensaje");
+		const btnPdf = document.getElementById("btnPdf");
+		const carpetaActiva = document.getElementById("carpetaActiva");
+		const btnOpciones = document.getElementById("btnOpciones");
+		const menuOpciones = document.getElementById("menuOpciones");
+		const imagenes = [];
+		if (window.pdfjsLib) {
+			window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+		}
+		let database = null;
+		let carpetas = [];
+		let carpetaActivaId = "";
+
+		const almacenamientoListo = abrirAlmacen().then(async function (db) {
+			database = db;
+			carpetas = await leerRegistros("carpetas");
+			imagenes.push(...await leerRegistros("documentos"));
+
+			if (carpetas.length === 0) {
+				const carpetaInicial = { id: crearId("carpeta"), nombre: "Mis documentos" };
+				carpetas.push(carpetaInicial);
+				await guardarRegistro("carpetas", carpetaInicial);
+			}
+
+			try {
+				carpetaActivaId = localStorage.getItem("sqcs-carpeta-activa") || "";
+			} catch (error) {
+				carpetaActivaId = "";
+			}
+
+			if (!carpetas.some(function (carpeta) { return carpeta.id === carpetaActivaId; })) {
+				carpetaActivaId = carpetas[0].id;
+			}
+
+			dibujarCarpetas();
+			dibujarPaginas();
+		}).catch(function () {
+			carpetas = [{ id: "carpeta-temporal", nombre: "Mis documentos" }];
+			carpetaActivaId = carpetas[0].id;
+			dibujarCarpetas();
+			dibujarPaginas();
+			mensaje.textContent = "El navegador no permitió activar el guardado permanente.";
+		});
+
+		carpetaActiva.addEventListener("change", function () {
+			carpetaActivaId = carpetaActiva.value;
+			try {
+				localStorage.setItem("sqcs-carpeta-activa", carpetaActivaId);
+			} catch (error) {
+			}
+			dibujarPaginas();
+		});
+
+		document.getElementById("btnNuevaCarpeta").addEventListener("click", crearCarpeta);
+
+		btnOpciones.addEventListener("click", function () {
+			const abierto = btnOpciones.getAttribute("aria-expanded") === "true";
+			btnOpciones.setAttribute("aria-expanded", String(!abierto));
+			menuOpciones.hidden = abierto;
+		});
+
+		document.addEventListener("click", function (evento) {
+			if (!evento.target.closest(".opciones")) {
+				menuOpciones.hidden = true;
+				btnOpciones.setAttribute("aria-expanded", "false");
+			}
+		});
+
+		document.addEventListener("keydown", function (evento) {
+			if (evento.key === "Escape") {
+				menuOpciones.hidden = true;
+				btnOpciones.setAttribute("aria-expanded", "false");
+			}
+		});
+
+		document.getElementById("btnEditarPdf").addEventListener("click", function () {
+			menuOpciones.hidden = true;
+			btnOpciones.setAttribute("aria-expanded", "false");
+			document.getElementById("tituloPaginas").scrollIntoView({ behavior: "smooth" });
+		});
+
+		document.getElementById("btnImprimir").addEventListener("click", function () {
+			menuOpciones.hidden = true;
+			btnOpciones.setAttribute("aria-expanded", "false");
+			if (imagenesDeCarpetaActiva().length === 0) {
+				mensaje.textContent = "Agrega una foto antes de imprimir.";
+				return;
+			}
+			window.print();
+		});
+
+		function abrirAlmacen() {
+			return new Promise(function (resolve, reject) {
+				const solicitud = indexedDB.open("SQCSScanner", 1);
+				solicitud.onupgradeneeded = function () {
+					const almacen = solicitud.result;
+					almacen.createObjectStore("carpetas", { keyPath: "id" });
+					almacen.createObjectStore("documentos", { keyPath: "id" });
+				};
+				solicitud.onsuccess = function () { resolve(solicitud.result); };
+				solicitud.onerror = function () { reject(solicitud.error); };
+			});
+		}
+
+		function leerRegistros(nombreAlmacen) {
+			return new Promise(function (resolve, reject) {
+				const solicitud = database.transaction(nombreAlmacen, "readonly").objectStore(nombreAlmacen).getAll();
+				solicitud.onsuccess = function () { resolve(solicitud.result); };
+				solicitud.onerror = function () { reject(solicitud.error); };
+			});
+		}
+
+		function guardarRegistro(nombreAlmacen, registro) {
+			return new Promise(function (resolve, reject) {
+				const solicitud = database.transaction(nombreAlmacen, "readwrite").objectStore(nombreAlmacen).put(registro);
+				solicitud.onsuccess = function () { resolve(); };
+				solicitud.onerror = function () { reject(solicitud.error); };
+			});
+		}
+
+		function borrarRegistro(nombreAlmacen, id) {
+			return new Promise(function (resolve, reject) {
+				const solicitud = database.transaction(nombreAlmacen, "readwrite").objectStore(nombreAlmacen).delete(id);
+				solicitud.onsuccess = function () { resolve(); };
+				solicitud.onerror = function () { reject(solicitud.error); };
+			});
+		}
+
+		function crearId(tipo) {
+			return tipo + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+		}
+
+		function dibujarCarpetas() {
+			carpetaActiva.innerHTML = "";
+			carpetas.forEach(function (carpeta) {
+				const opcion = document.createElement("option");
+				opcion.value = carpeta.id;
+				opcion.textContent = carpeta.nombre;
+				opcion.selected = carpeta.id === carpetaActivaId;
+				carpetaActiva.appendChild(opcion);
+			});
+		}
+
+		async function crearCarpeta() {
+			await almacenamientoListo;
+			const nombre = window.prompt("Nombre de la nueva carpeta:");
+			if (!nombre || !nombre.trim()) {
+				return;
+			}
+
+			const carpeta = { id: crearId("carpeta"), nombre: nombre.trim() };
+			try {
+				if (!database) {
+					throw new Error("Almacenamiento no disponible");
+				}
+				await guardarRegistro("carpetas", carpeta);
+				carpetas.push(carpeta);
+				carpetaActivaId = carpeta.id;
+				try {
+					localStorage.setItem("sqcs-carpeta-activa", carpetaActivaId);
+				} catch (error) {
+				}
+				dibujarCarpetas();
+				dibujarPaginas();
+				mensaje.textContent = "Carpeta creada.";
+			} catch (error) {
+				mensaje.textContent = "No se pudo guardar la carpeta en este navegador.";
+			}
+		}
+
+		function imagenesDeCarpetaActiva() {
+			return imagenes.filter(function (imagen) { return imagen.carpetaId === carpetaActivaId; });
+		}
+
+		document.getElementById("btnCamara").addEventListener("click", function () {
+			entradaCamara.click();
+		});
+
+		document.getElementById("btnImportar").addEventListener("click", function () {
+			entradaImagenes.click();
+		});
+
+		entradaCamara.addEventListener("change", function () {
+			agregarImagenes(entradaCamara.files);
+			entradaCamara.value = "";
+		});
+
+		entradaImagenes.addEventListener("change", function () {
+			agregarImagenes(entradaImagenes.files);
+			entradaImagenes.value = "";
+		});
+
+		function leerArchivoComoDataUrl(archivo) {
+			return new Promise(function (resolve, reject) {
+				const lector = new FileReader();
+				lector.onload = function () { resolve(lector.result); };
+				lector.onerror = function () { reject(lector.error); };
+				lector.readAsDataURL(archivo);
+			});
+		}
+
+		async function agregarPdf(archivo) {
+			if (!window.pdfjsLib) {
+				throw new Error("El lector de PDF no está disponible.");
+			}
+			const documento = await window.pdfjsLib.getDocument({ data: await archivo.arrayBuffer() }).promise;
+			const baseNombre = archivo.name.replace(/\.pdf$/i, "") || "Documento";
+			for (let numero = 1; numero <= documento.numPages; numero++) {
+				const paginaPdf = await documento.getPage(numero);
+				const vista = paginaPdf.getViewport({ scale: 1 });
+				const escala = Math.min(2, 2400 / Math.max(vista.width, vista.height));
+				const viewport = paginaPdf.getViewport({ scale: escala });
+				const canvas = document.createElement("canvas");
+				canvas.width = Math.ceil(viewport.width);
+				canvas.height = Math.ceil(viewport.height);
+				await paginaPdf.render({ canvasContext: canvas.getContext("2d"), viewport: viewport }).promise;
+				await guardarImagenImportada(baseNombre + " - Página " + numero, canvas.toDataURL("image/jpeg", .92));
+				canvas.width = 0;
+				canvas.height = 0;
+			}
+			await documento.destroy();
+			return documento.numPages;
+		}
+
+		async function guardarImagenImportada(nombre, src) {
+			await almacenamientoListo;
+			const imagen = {
+				id: crearId("documento"),
+				carpetaId: carpetaActivaId,
+				nombre: nombre,
+				src: src
+			};
+			imagenes.push(imagen);
+			dibujarPaginas();
+			if (database) {
+				try {
+					await guardarRegistro("documentos", imagen);
+				} catch (error) {
+					mensaje.textContent = "El archivo se muestra, pero no se pudo guardar en este dispositivo.";
+				}
+			} else {
+				mensaje.textContent = "Este archivo solo estará disponible hasta cerrar la página.";
+			}
+		}
+
+		async function agregarImagenes(archivos) {
+			const archivosSeleccionados = Array.from(archivos);
+			await almacenamientoListo;
+			for (const archivo of archivosSeleccionados) {
+				try {
+					if (archivo.type.startsWith("image/")) {
+						await guardarImagenImportada(archivo.name || "Foto", await leerArchivoComoDataUrl(archivo));
+					} else if (archivo.type === "application/pdf" || /\.pdf$/i.test(archivo.name)) {
+						await agregarPdf(archivo);
+					} else {
+						mensaje.textContent = "Elige imágenes o documentos PDF.";
+					}
+				} catch (error) {
+					mensaje.textContent = "No se pudo importar " + archivo.name + ". Comprueba que sea un archivo válido.";
+				}
+			}
+		}
+
+		function dibujarPaginas() {
+			listaPaginas.innerHTML = "";
+			const documentos = imagenesDeCarpetaActiva();
+			contador.textContent = documentos.length + (documentos.length === 1 ? " página" : " páginas");
+			btnPdf.disabled = documentos.length === 0;
+
+			if (documentos.length === 0) {
+				const vacio = document.createElement("div");
+				vacio.className = "vacio";
+				vacio.textContent = "Tus fotos aparecerán aquí. Puedes quitarlas antes de crear el PDF.";
+				listaPaginas.appendChild(vacio);
+				return;
+			}
+
+			documentos.forEach(function (imagen, indice) {
+				const fila = document.createElement("article");
+				fila.className = "pagina";
+
+				const miniatura = document.createElement("img");
+				miniatura.src = imagen.src;
+				miniatura.alt = "Página " + (indice + 1);
+
+				const informacion = document.createElement("div");
+				informacion.className = "pagina-info";
+
+				const nombre = document.createElement("strong");
+				nombre.textContent = imagen.nombre;
+
+				const detalle = document.createElement("span");
+				detalle.textContent = "Página " + (indice + 1);
+
+				const quitar = document.createElement("button");
+				quitar.className = "quitar";
+				quitar.type = "button";
+				quitar.textContent = "×";
+				quitar.setAttribute("aria-label", "Quitar página " + (indice + 1));
+				quitar.addEventListener("click", function () {
+					imagenes.splice(imagenes.findIndex(function (elemento) { return elemento.id === imagen.id; }), 1);
+					if (database) {
+						borrarRegistro("documentos", imagen.id).catch(function () {
+							mensaje.textContent = "No se pudo borrar la copia guardada.";
+						});
+					}
+					dibujarPaginas();
+				});
+
+				informacion.appendChild(nombre);
+				informacion.appendChild(detalle);
+				fila.appendChild(miniatura);
+				fila.appendChild(informacion);
+				fila.appendChild(quitar);
+				listaPaginas.appendChild(fila);
+			});
+		}
+
+		btnPdf.addEventListener("click", async function () {
+			const documentos = imagenesDeCarpetaActiva();
+			if (documentos.length === 0) {
+				return;
+			}
+
+			if (!window.jspdf) {
+				mensaje.textContent = "No se pudo cargar la herramienta para crear el PDF.";
+				return;
+			}
+
+			btnPdf.disabled = true;
+			btnPdf.textContent = "Creando PDF...";
+
+			try {
+				const { jsPDF } = window.jspdf;
+				const pdf = new jsPDF();
+
+				for (let indice = 0; indice < documentos.length; indice++) {
+					const imagen = new Image();
+					imagen.src = documentos[indice].src;
+					await new Promise(function (resolve, reject) {
+						imagen.onload = resolve;
+						imagen.onerror = reject;
+					});
+
+					if (indice > 0) {
+						pdf.addPage();
+					}
+
+					const anchoPagina = 210;
+					const altoPagina = 297;
+					const margen = 10;
+					const escala = Math.min(
+						(anchoPagina - margen * 2) / imagen.naturalWidth,
+						(altoPagina - margen * 2) / imagen.naturalHeight
+					);
+					const ancho = imagen.naturalWidth * escala;
+					const alto = imagen.naturalHeight * escala;
+					const formato = documentos[indice].src.indexOf("image/png") !== -1 ? "PNG" : "JPEG";
+
+					pdf.addImage(
+						documentos[indice].src,
+						formato,
+						(anchoPagina - ancho) / 2,
+						(altoPagina - alto) / 2,
+						ancho,
+						alto
+					);
+				}
+
+				pdf.save("documento-escaneado.pdf");
+				mensaje.textContent = "PDF creado correctamente.";
+			} catch (error) {
+				mensaje.textContent = "No se pudo crear el PDF. Intenta de nuevo.";
+			} finally {
+				btnPdf.disabled = imagenesDeCarpetaActiva().length === 0;
+				btnPdf.textContent = "Crear PDF";
+			}
+		});
+	</script>
+</body>
+</html>
